@@ -3,7 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <sys/wait.h>
+#include <poll.h>
 
 #include <libinput.h>
 #include <dbus/dbus.h>
@@ -115,13 +115,13 @@ int main(void) {
   // main loop
   while (1) {
     struct libinput_event *event = libinput_get_event(libinput);
-    if (!event) {
-      // we have consumed all events so far
-      usleep(500000); // sleep for 500 milliseconds
-      continue;
-    }
+    struct pollfd fd = {libinput_get_fd(libinput), POLLIN, 0};
+    poll(&fd, 1, -1);
+    libinput_dispatch(libinput);
 
-    handle_event(event);
+    while((event = libinput_get_event(libinput))) {
+      handle_event(event);
+    }
 
     libinput_event_destroy(event);
   }
