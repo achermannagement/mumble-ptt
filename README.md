@@ -15,3 +15,5 @@ then run
 or if you are unfortunate
 
 `gcc -Wall -Werror $(pkg-config dbus-1 --cflags) -o mumble_ptt mumble_ptt.c -linput -ludev -ldbus-1`
+
+It needs to run as root or be run under the input permission group to work
