@@ -6,12 +6,11 @@
 #include <poll.h>
 
 #include <libinput.h>
-#include <dbus/dbus.h>
+#include <libudev.h>
 
 #define RIGHT_CTRL_KEY 97
 #define LIBINPUT_SEAT "seat0"
 
-static DBusConnection *connection = NULL;
 static struct udev *udev = NULL;
 static struct libinput *libinput = NULL;
 
@@ -28,14 +27,6 @@ static int init_udev(void) {
   udev = udev_new();
   if (!udev) {
     return 1;
-  }
-  return 0;
-}
-
-static int init_dbus(void) {
-  connection = dbus_bus_get(DBUS_BUS_SESSION, NULL);
-  if (!connection) {
-    return 2;
   }
   return 0;
 }
@@ -133,10 +124,6 @@ int main(void) {
   if (udev) {
     udev_unref(udev);
   }
-  if (connection) {
-    dbus_connection_unref(connection);
-  }
-
   return 0;
 }
 
