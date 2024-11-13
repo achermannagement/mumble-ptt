@@ -49,21 +49,12 @@ static int init_libinput(void) {
   return 0;
 }
 
-int dbus_send(char *command) {
-  DBusError err;
-  dbus_error_init(&err);
-  DBusMessage *msg = dbus_message_new_method_call("net.sourceforge.mumble.mumble", "/", "net.sourceforge.mumble.Mumble", command);
-  if (!dbus_connection_send_with_reply_and_block(connection, msg, DBUS_TIMEOUT_USE_DEFAULT, &err)) {
-    return 5;
-  }
-  // ignore the reply (if any)
-  //dbus_connection_pop_message(connection);
-  dbus_message_unref(msg);
-  if (dbus_error_is_set(&err)) {
-    dbus_error_free(&err);
-    return 6;
-  }
-  return 0;
+int dbus_send_start(void) {
+  return system("dbus-send --session --type=method_call --dest=net.sourceforge.mumble.mumble / net.sourceforge.mumble.Mumble.startTalking");
+}
+
+int dbus_send_stop(void) {
+  return system("dbus-send --session --type=method_call --dest=net.sourceforge.mumble.mumble / net.sourceforge.mumble.Mumble.stopTalking");
 }
 
 static void handle_event(struct libinput_event *event) {
