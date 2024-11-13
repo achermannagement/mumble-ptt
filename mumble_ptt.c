@@ -14,14 +14,16 @@
 static struct udev *udev = NULL;
 static struct libinput *libinput = NULL;
 
-static int open_restricted(const char *path, int flags, void *user_data) {
+static int open_restricted(const char *path, int flags, __attribute__((unused)) void *user_data) {
   return open(path, flags);
 }
-static void close_restricted(int fd, void *user_data) {
+static void close_restricted(int fd, __attribute__((unused)) void *user_data) {
   close(fd);
 }
-
-static struct libinput_interface interface = {&open_restricted, &close_restricted};
+static const struct libinput_interface interface = {
+  .open_restricted = open_restricted,
+  .close_restricted = close_restricted,
+};
 
 static int init_udev(void) {
   udev = udev_new();
