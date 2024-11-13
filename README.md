@@ -16,4 +16,10 @@ or if you are unfortunate
 
 `gcc -Wall -Werror -Wextra $(pkg-config dbus-1 --cflags) -o mumble_ptt mumble_ptt.c -linput -ludev -ldbus-1`
 
-It needs to run as root or be run under the input permission group to work
+It needs to be run under the input permission group to work
+DO NOT run as superuser as that will change the environment and break the dbus-send commands!
+
+```
+usermod -aG input <user>
+newgrp input
+```
