@@ -70,45 +70,46 @@ static void handle_event(struct libinput_event *event) {
   int key_state = libinput_event_keyboard_get_key_state(keyboard_event);
   if (key == RIGHT_CTRL_KEY) {
     if (key_state == LIBINPUT_KEY_STATE_PRESSED) {
-      dbus_send("startTalking");
+      dbus_send_start();
     } else if (key_state == LIBINPUT_KEY_STATE_RELEASED) {
-      dbus_send("stopTalking");
+      dbus_send_stop();
     }
   }
+  libinput_event_destroy(event);
+}
+
+// when our poll fires we need to handle all events
+static void handle_events() {
+    struct libinput_event *event;
+    while((event = libinput_get_event(libinput)) != NULL) {
+      handle_event(event);
+    }
 }
 
 int main(void) {
-  int errno = init_dbus();
+  int errno = init_udev();
   if (errno != 0) {
-    return errno;
-  }
-  errno = init_udev();
-  if (errno != 0) {
-    // dbus connection MUST have succeeded in previous conditional
-    dbus_connection_unref(connection);
+    udev_unref(udev);
     return errno;
   }
   errno = init_libinput();
+
   if (errno != 0) {
     // udev init MUST have succeeded in previous conditional
     udev_unref(udev);
-    // dbus connection MUST have succeeded in previous conditional
-    dbus_connection_unref(connection);
     return errno;
   }
 
+  struct pollfd fd = {
+    .fd = libinput_get_fd(libinput),
+    .events = POLLIN,
+    .revents = 0
+  };
+
   // main loop
-  while (1) {
-    struct libinput_event *event = libinput_get_event(libinput);
-    struct pollfd fd = {libinput_get_fd(libinput), POLLIN, 0};
-    poll(&fd, 1, -1);
+  while (poll(&fd, 1, -1) > -1) {
     libinput_dispatch(libinput);
-
-    while((event = libinput_get_event(libinput))) {
-      handle_event(event);
-    }
-
-    libinput_event_destroy(event);
+    handle_events();
   }
 
   if (libinput) {
